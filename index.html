@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokémon Save Viewer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>Pokémon Save Viewer</h1>
+  <span id="game-badge" class="hidden"></span>
+  <span id="mon-count" class="hidden"></span>
+  <button id="btn-new-file" class="hidden">Load New File</button>
+</header>
+
+<div id="error-msg" class="hidden"></div>
+
+<!-- Upload screen -->
+<div id="upload-area">
+  <div class="drop-zone" id="drop-zone">
+    <div class="drop-icon">💾</div>
+    <h2>Drop your save file here</h2>
+    <p>Supports .sav, .dsv, .dat — HeartGold, SoulSilver, Platinum</p>
+  </div>
+  <label class="btn-primary" for="file-input">
+    Browse for file
+    <input type="file" id="file-input" accept=".sav,.dsv,.dat,.bin">
+  </label>
+  <p style="color:var(--text-muted);font-size:0.8rem">Your save file never leaves your device — everything runs locally.</p>
+</div>
+
+<!-- Viewer -->
+<div id="viewer" class="hidden">
+  <div id="toolbar">
+    <input type="text" id="filter-input" placeholder="Filter by name, nature…" autocomplete="off" spellcheck="false">
+    <label class="shiny-filter">
+      <input type="checkbox" id="shiny-toggle"> ★ Shiny only
+    </label>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-sort="loc">Location</th>
+          <th data-sort="species">Pokémon</th>
+          <th data-sort="level">Lv</th>
+          <th data-sort="nature">Nature</th>
+          <th data-sort="ivtotal">IV Total</th>
+          <th>IVs (HP/A/D/S/SA/SD)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="mon-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
