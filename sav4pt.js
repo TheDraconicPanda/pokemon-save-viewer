@@ -35,7 +35,7 @@ function stripDsvHeader(buf) {
 
 function getSaveCounter(buf, blockOffset, blockSize) {
   const view = new DataView(buf);
-  return view.getUint32(blockOffset + blockSize - 0x10 + 0x0C, true);
+  return view.getUint32(blockOffset + blockSize - 0x10, true);
 }
 
 export function parsePlatinum(buffer) {

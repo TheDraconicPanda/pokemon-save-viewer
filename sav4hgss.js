@@ -33,11 +33,12 @@ function crc16(data, offset, length) {
   return crc;
 }
 
-// Read the save counter from the block footer (last 0x10 bytes of each block)
+// Read the save counter from the block footer (last 0x10 bytes of each block).
+// Counter is the first uint32 in the footer.
 function getSaveCounter(buf, blockOffset, blockSize) {
   const view = new DataView(buf);
   const footerStart = blockOffset + blockSize - 0x10;
-  return view.getUint32(footerStart + 0x0C, true);
+  return view.getUint32(footerStart, true);
 }
 
 // Determine if a DeSmuME .dsv header is present (512-byte header before raw save data)
