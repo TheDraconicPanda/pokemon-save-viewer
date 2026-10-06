@@ -26,19 +26,12 @@ function detectGame(buffer) {
 }
 
 // --- Stat calculation helpers ---
-const STAT_NAMES = ['HP', 'ATK', 'DEF', 'SPE', 'SPA', 'SPD'];
-
-function ivBar(val) {
-  const pct = Math.round((val / 31) * 100);
-  const cls = val === 31 ? 'iv-max' : val === 0 ? 'iv-zero' : '';
-  return `<div class="stat-bar-wrap"><div class="stat-bar ${cls}" style="width:${pct}%"></div><span>${val}</span></div>`;
-}
-
-function evBar(val) {
-  const pct = Math.round((val / 252) * 100);
-  const cls = val >= 252 ? 'ev-max' : '';
-  return `<div class="stat-bar-wrap"><div class="stat-bar ev ${cls}" style="width:${pct}%"></div><span>${val}</span></div>`;
-}
+// Display order: HP, ATK, DEF, Sp.Atk, Sp.Def, Speed (in-game order)
+// Internal order in ivs/evs objects: hp, atk, def, spe, spa, spd
+const STAT_NAMES   = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed'];
+// nature mods array from pk4.js is [ATK, DEF, SPE, SPA, SPD]; map to display order
+const STAT_NAT_IDX = [-1,   0,        1,          3,         4,         2]; // index into natMods, -1=HP
+const STAT_KEYS    = ['hp', 'atk',    'def',      'spa',     'spd',     'spe'];
 
 // --- Render helpers ---
 function natureClass(nature) {
@@ -81,14 +74,20 @@ function renderRow(mon, idx) {
 
 function renderDetail(mon) {
   const natMods = natureClass(mon.nature);
-  const statLabels = ['ATK','DEF','SPE','SPA','SPD'];
-  const ivArr = [mon.ivs.hp, mon.ivs.atk, mon.ivs.def, mon.ivs.spe, mon.ivs.spa, mon.ivs.spd];
-  const evArr = [mon.evs.hp, mon.evs.atk, mon.evs.def, mon.evs.spe, mon.evs.spa, mon.evs.spd];
+  // Display order: HP, ATK, DEF, SPA, SPD, SPE — matching in-game stat screen
+  const statValues = mon.inParty
+    ? [mon.maxHp, mon.stats.atk, mon.stats.def, mon.stats.spa, mon.stats.spd, mon.stats.spe]
+    : [null, null, null, null, null, null];
 
   const ivRows = STAT_NAMES.map((s, i) => {
-    const mod = i === 0 ? 0 : natMods[i - 1];
+    const natIdx = STAT_NAT_IDX[i];
+    const mod = natIdx < 0 ? 0 : natMods[natIdx];
     const cls = mod > 0 ? 'nat-up' : mod < 0 ? 'nat-down' : '';
-    return `<tr><td class="stat-lbl ${cls}">${s}</td><td>${ivBar(ivArr[i])}</td><td>${evBar(evArr[i])}</td></tr>`;
+    const key = STAT_KEYS[i];
+    const iv = mon.ivs[key];
+    const ev = mon.evs[key];
+    const val = statValues[i] !== null ? statValues[i] : '—';
+    return `<tr><td class="stat-lbl ${cls}">${s}</td><td class="stat-val">${val}</td><td>${iv}</td><td>${ev}</td></tr>`;
   }).join('');
 
   const movesHtml = mon.moves.map((m, i) =>
@@ -113,7 +112,7 @@ function renderDetail(mon) {
       <div class="detail-section">
         <h4>Stats</h4>
         <table class="iv-table">
-          <thead><tr><th>Stat</th><th>IV (0–31)</th><th>EV (0–252)</th></tr></thead>
+          <thead><tr><th>Stat</th><th>Value</th><th>IV</th><th>EV</th></tr></thead>
           <tbody>${ivRows}</tbody>
         </table>
         <div class="hp-detail detail-type">Hidden Power: <strong>${mon.hpType}</strong> (${mon.hpPower})</div>
