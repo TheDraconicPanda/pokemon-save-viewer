@@ -27,56 +27,61 @@ function decryptPK4(data) {
   const pid = view.getUint32(0, true);
   const checksum = view.getUint16(6, true);
 
-  // 1. Unshuffle the four 32-byte blocks at 0x08–0x87
-  const shift = ((pid & 0x3E000) >>> 13) % 24;
-  const order = BLOCK_POSITIONS[shift];
-
-  // Read the four original shuffled blocks
-  const blocks = [0, 1, 2, 3].map(i =>
-    data.slice(8 + i * 32, 8 + i * 32 + 32)
-  );
-
-  // Write them back in ABCD order
-  for (let dest = 0; dest < 4; dest++) {
-    const src = order.indexOf(dest);
-    out.set(blocks[src], 8 + dest * 32);
-  }
-
-  // 2. XOR-decrypt all 128 bytes of encrypted data (0x08–0x87)
+  // 1. XOR-decrypt all 128 bytes of encrypted data (0x08–0x87)
+  // Must happen BEFORE unshuffling — the shuffle is applied to the decrypted blocks.
   let seed = checksum;
   for (let i = 0x08; i < 0x88; i += 2) {
     seed = prngNext(seed);
     const keyWord = (seed >>> 16) & 0xFFFF;
-    const plain = view.getUint16(i, true) ^ keyWord;
-    view.setUint16(i, plain, true);
+    view.setUint16(i, view.getUint16(i, true) ^ keyWord, true);
+  }
+
+  // 2. Unshuffle the four 32-byte blocks at 0x08–0x87
+  const shift = ((pid & 0x3E000) >>> 13) % 24;
+  const order = BLOCK_POSITIONS[shift];
+  const blocks = [0, 1, 2, 3].map(i => out.slice(8 + i * 32, 8 + i * 32 + 32));
+  for (let dest = 0; dest < 4; dest++) {
+    const src = order.indexOf(dest);
+    out.set(blocks[src], 8 + dest * 32);
   }
 
   // 3. Decrypt battle stats (0x88–0xEB) if party-sized (236 bytes)
   if (data.length > 136) {
     for (let i = 0x88; i < 0xEB; i += 2) {
       seed = prngNext(seed);
-      const keyWord = (seed >>> 16) & 0xFFFF;
-      const plain = view.getUint16(i, true) ^ keyWord;
-      view.setUint16(i, plain, true);
+      view.setUint16(i, view.getUint16(i, true) ^ ((seed >>> 16) & 0xFFFF), true);
     }
   }
 
   return out;
 }
 
-// Decode a UTF-16LE Pokémon string terminated by 0xFFFF
+// Gen 4 international character table (from PKHeX Char4b.cs)
+// Maps byte index (code & 0xFF when high byte is 0x01) to Unicode character
+const GEN4_CHARS =
+  ' ÀÁÂÇÈÉÊËÎÏÔÙÛÜá' + // 00-0F
+  'àâçèéêëîïôùûüñß°' + // 10-1F
+  '♂♀$,×/ABCDEFGHIJ' + // 20-2F
+  'KLMNOPQRSTUVWXYZ' + // 30-3F
+  '():ÄÖabcdefghijk' + // 40-4F
+  'lmnopqrstuvwxyz0' + // 50-5F
+  '123456789!?.-·\'“' + // 60-6F
+  '”…+&#|™←^⬆⬇⬅'; // 70-7B
+
+// Decode a Gen 4 encoded Pokémon string (terminated by 0xFFFF)
 function decodePk4String(data, offset, maxChars) {
   const view = new DataView(data.buffer ?? data);
   let s = '';
   for (let i = 0; i < maxChars; i++) {
     const cp = view.getUint16(offset + i * 2, true);
-    if (cp === 0xFFFF) break;
-    // Map Gen 4 special characters
-    if (cp === 0x246D) { s += '♂'; continue; }
-    if (cp === 0x246E) { s += '♀'; continue; }
-    if (cp === 0x2642) { s += '♂'; continue; }
-    if (cp === 0x2640) { s += '♀'; continue; }
-    s += String.fromCharCode(cp);
+    if (cp === 0xFFFF || cp === 0x0000) break;
+    if (cp >= 0x0100 && cp < 0x0200) {
+      const idx = cp & 0xFF;
+      s += idx < GEN4_CHARS.length ? GEN4_CHARS[idx] : '�';
+    } else {
+      // Value outside expected range — corrupted or non-Latin encoding
+      s += '?';
+    }
   }
   return s;
 }

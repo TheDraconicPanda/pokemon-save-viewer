@@ -18,8 +18,7 @@ const PARTY_SIZE    = 236; // party Pokemon include battle stats
 // HGSS Storage block offsets
 const BOX_COUNT     = 18;
 const BOX_SLOTS     = 30;
-const BOX_SIZE      = 136; // boxed Pokemon
-const BOX_STRIDE    = 0x1000; // each box padded to 0x1000
+const BOX_SIZE      = 136; // boxed Pokemon, tightly packed (no stride padding)
 
 // CRC-16-CCITT (XModem variant, poly 0x1021, init 0x0000)
 function crc16(data, offset, length) {
@@ -34,11 +33,11 @@ function crc16(data, offset, length) {
   return crc;
 }
 
-// Read the save counter from the block footer (last 20 bytes of each block)
+// Read the save counter from the block footer (last 0x10 bytes of each block)
 function getSaveCounter(buf, blockOffset, blockSize) {
   const view = new DataView(buf);
-  const footerStart = blockOffset + blockSize - 20;
-  return view.getUint32(footerStart + 12, true);
+  const footerStart = blockOffset + blockSize - 0x10;
+  return view.getUint32(footerStart + 0x0C, true);
 }
 
 // Determine if a DeSmuME .dsv header is present (512-byte header before raw save data)
@@ -87,7 +86,7 @@ export function parseHGSS(buffer) {
   const storage = u8.subarray(storageOff, storageOff + STORAGE_SIZE);
 
   // Verify checksums (warn but don't abort — emulator saves sometimes have different layouts)
-  const genCrc = crc16(general, 0, GENERAL_SIZE - 20);
+  const genCrc = crc16(general, 0, GENERAL_SIZE - 0x10);
   const genStoredCrc = new DataView(raw).getUint16(generalOff + GENERAL_SIZE - 2, true);
   if (genCrc !== genStoredCrc) {
     console.warn(`General block CRC mismatch: computed 0x${genCrc.toString(16).toUpperCase()} vs stored 0x${genStoredCrc.toString(16).toUpperCase()}`);
@@ -111,7 +110,7 @@ export function parseHGSS(buffer) {
   for (let box = 0; box < BOX_COUNT; box++) {
     const mons = [];
     for (let slot = 0; slot < BOX_SLOTS; slot++) {
-      const offset = box * BOX_STRIDE + slot * BOX_SIZE;
+      const offset = (box * BOX_SLOTS + slot) * BOX_SIZE;
       const data = storage.slice(offset, offset + BOX_SIZE);
       const mon = decodePK4(data);
       if (mon) {
