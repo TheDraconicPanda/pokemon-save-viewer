@@ -18,7 +18,8 @@ const PARTY_SIZE    = 236; // party Pokemon include battle stats
 // HGSS Storage block offsets
 const BOX_COUNT     = 18;
 const BOX_SLOTS     = 30;
-const BOX_SIZE      = 136; // boxed Pokemon, tightly packed (no stride padding)
+const BOX_SIZE      = 136;
+const BOX_STRIDE    = 0x1000; // each box is padded to 0x1000 bytes (30*136=0xFF0 + 0x10 padding)
 
 // CRC-16-CCITT (XModem variant, poly 0x1021, init 0x0000)
 function crc16(data, offset, length) {
@@ -111,7 +112,7 @@ export function parseHGSS(buffer) {
   for (let box = 0; box < BOX_COUNT; box++) {
     const mons = [];
     for (let slot = 0; slot < BOX_SLOTS; slot++) {
-      const offset = (box * BOX_SLOTS + slot) * BOX_SIZE;
+      const offset = box * BOX_STRIDE + slot * BOX_SIZE;
       const data = storage.slice(offset, offset + BOX_SIZE);
       const mon = decodePK4(data);
       if (mon) {

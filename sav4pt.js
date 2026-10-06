@@ -15,6 +15,7 @@ const PARTY_SIZE    = 236;
 const BOX_COUNT     = 18;
 const BOX_SLOTS     = 30;
 const BOX_SIZE      = 136;
+const BOX_STRIDE    = 0x1000;
 
 function crc16(data, offset, length) {
   let crc = 0;
@@ -72,7 +73,7 @@ export function parsePlatinum(buffer) {
   for (let box = 0; box < BOX_COUNT; box++) {
     const mons = [];
     for (let slot = 0; slot < BOX_SLOTS; slot++) {
-      const offset = (box * BOX_SLOTS + slot) * BOX_SIZE;
+      const offset = box * BOX_STRIDE + slot * BOX_SIZE;
       const data = storage.slice(offset, offset + BOX_SIZE);
       const mon = decodePK4(data);
       if (mon) { mon.boxIndex = box; mon.boxSlot = slot; mon.inParty = false; mons.push(mon); }
