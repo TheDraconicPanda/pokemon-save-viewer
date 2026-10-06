@@ -61,12 +61,11 @@ function decryptPK4(data) {
 const GEN4_CHARS =
   ' ÀÁÂÇÈÉÊËÎÏÔÙÛÜá' + // 00-0F
   'àâçèéêëîïôùûüñß°' + // 10-1F
-  '♂♀$,×/ABCDEFGHIJ' + // 20-2F
-  'KLMNOPQRSTUVWXYZ' + // 30-3F
-  '():ÄÖabcdefghijk' + // 40-4F
-  'lmnopqrstuvwxyz0' + // 50-5F
-  '123456789!?.-·\'“' + // 60-6F
-  '”…+&#|™←^⬆⬇⬅'; // 70-7B
+  '♂♀$,×/():ÄÖ' +      // 20-2A (11 symbols before uppercase)
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + // 2B-44
+  'abcdefghijklmnopqrstuvwxyz' + // 45-5E
+  '0123456789!?.-·\'”' + // 5F-70
+  '”…+&#|™←^⬆⬇⬅';   // 71-7C
 
 // Decode a Gen 4 encoded Pokémon string (terminated by 0xFFFF)
 function decodePk4String(data, offset, maxChars) {
