@@ -172,7 +172,7 @@ export function parseHGSS(buffer) {
     const slot = general.slice(offset, offset + PARTY_SIZE);
     const mon = decodePK4(slot);
     if (!mon) continue;
-    if (mon.tid !== trainerTID || mon.exp >= 2_000_000) continue;
+    if (mon.exp >= 2_000_000) continue;
     mon.partySlot = i;
     mon.inParty = true;
     party.push(mon);

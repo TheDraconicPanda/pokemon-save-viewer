@@ -4,12 +4,12 @@
 // The 24 possible block orderings for the ABCD shuffle.
 // Each row is [blockA_idx, blockB_idx, blockC_idx, blockD_idx]
 const BLOCK_POSITIONS = [
-  [0, 1, 2, 3], [0, 1, 3, 2], [0, 2, 1, 3], [0, 3, 1, 2],
-  [0, 2, 3, 1], [0, 3, 2, 1], [1, 0, 2, 3], [1, 0, 3, 2],
-  [2, 0, 1, 3], [3, 0, 1, 2], [2, 0, 3, 1], [3, 0, 2, 1],
-  [1, 2, 0, 3], [1, 3, 0, 2], [2, 1, 0, 3], [3, 1, 0, 2],
-  [2, 3, 0, 1], [3, 2, 0, 1], [1, 2, 3, 0], [1, 3, 2, 0],
-  [2, 1, 3, 0], [3, 1, 2, 0], [2, 3, 1, 0], [3, 2, 1, 0],
+  [0,1,2,3], [0,1,3,2], [0,2,1,3], [0,2,3,1],
+  [0,3,1,2], [0,3,2,1], [1,0,2,3], [1,0,3,2],
+  [1,2,0,3], [1,2,3,0], [1,3,0,2], [1,3,2,0],
+  [2,0,1,3], [2,0,3,1], [2,1,0,3], [2,1,3,0],
+  [2,3,0,1], [2,3,1,0], [3,0,1,2], [3,0,2,1],
+  [3,1,0,2], [3,1,2,0], [3,2,0,1], [3,2,1,0],
 ];
 
 // Linear congruential PRNG used for encryption
@@ -45,11 +45,13 @@ function decryptPK4(data) {
     out.set(blocks[src], 8 + dest * 32);
   }
 
-  // 3. Decrypt battle stats (0x88–0xEB) if party-sized (236 bytes)
+  // 3. Decrypt battle stats (0x88–0xEB) if party-sized (236 bytes).
+  // Battle stats use PID as seed — a fresh PRNG, not a continuation of the checksum seed.
   if (data.length > 136) {
+    let battleSeed = pid;
     for (let i = 0x88; i < 0xEB; i += 2) {
-      seed = prngNext(seed);
-      view.setUint16(i, view.getUint16(i, true) ^ ((seed >>> 16) & 0xFFFF), true);
+      battleSeed = prngNext(battleSeed);
+      view.setUint16(i, view.getUint16(i, true) ^ ((battleSeed >>> 16) & 0xFFFF), true);
     }
   }
 
