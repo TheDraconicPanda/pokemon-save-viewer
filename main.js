@@ -58,7 +58,7 @@ function renderRow(mon, idx) {
 
   return `<tr class="mon-row" data-idx="${idx}" tabindex="0">
     <td class="td-loc">${loc}</td>
-    <td class="td-species">${shiny}${egg}<span class="species-num">#${String(mon.species).padStart(3,'0')}</span> ${name}</td>
+    <td class="td-species">${shiny}${egg}${name}</td>
     <td class="td-level">${level}</td>
     <td class="td-nature">${natName}</td>
     <td class="td-ivtotal ${ivSum >= 186 ? 'high-iv' : ''}">${ivSum}</td>
@@ -87,7 +87,8 @@ function renderDetail(mon) {
     const iv = mon.ivs[key];
     const ev = mon.evs[key];
     const val = statValues[i] !== null ? statValues[i] : '—';
-    return `<tr><td class="stat-lbl ${cls}">${s}</td><td class="stat-val">${val}</td><td>${iv}</td><td>${ev}</td></tr>`;
+    const arrow = mod > 0 ? ' ↑' : mod < 0 ? ' ↓' : '';
+    return `<tr><td class="stat-lbl ${cls}">${s}<span class="nat-arrow">${arrow}</span></td><td class="stat-val">${val}</td><td>${iv}</td><td>${ev}</td></tr>`;
   }).join('');
 
   const movesHtml = mon.moves.map((m, i) =>

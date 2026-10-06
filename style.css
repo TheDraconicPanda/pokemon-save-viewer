@@ -245,25 +245,15 @@ th.sort-active.sort-desc::after { content: ' ▼'; }
   border-bottom: 1px solid var(--border);
 }
 
-/* IV/EV bars */
-.iv-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-.iv-table td { padding: 3px 4px; }
-.stat-lbl { width: 36px; font-weight: 600; color: var(--text-muted); }
+/* Stats table */
+.iv-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.iv-table th { color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; padding: 2px 4px; text-align: left; }
+.iv-table td { padding: 2px 4px; }
+.stat-lbl { width: 70px; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
 .stat-lbl.nat-up { color: #ef5350; }
 .stat-lbl.nat-down { color: #42a5f5; }
-.stat-bar-wrap { display: flex; align-items: center; gap: 6px; }
-.stat-bar {
-  height: 8px;
-  background: var(--iv-good);
-  border-radius: 4px;
-  min-width: 2px;
-  flex-shrink: 0;
-}
-.stat-bar.iv-max { background: var(--iv-max); }
-.stat-bar.iv-zero { background: #555; }
-.stat-bar.ev { background: var(--ev-color); }
-.stat-bar.ev-max { background: #7c4dff; }
-.stat-bar-wrap span { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+.nat-arrow { font-size: 0.7rem; }
+.stat-val { font-weight: 600; color: var(--text); text-align: right; padding-right: 8px; }
 .hp-detail { margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); }
 .hp-detail strong { color: var(--text); }
 
